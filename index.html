@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple URL Shortener</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and basic layout */
+        body {
+            font-family: "Inter", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Shorten Your Link</h1>
+
+        <div class="mb-4">
+            <label for="longUrl" class="block text-gray-700 text-sm font-semibold mb-2">Enter a long URL:</label>
+            <input
+                type="text"
+                id="longUrl"
+                placeholder="e.g., https://www.example.com/very/long/path/to/page"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            >
+        </div>
+
+        <button
+            onclick="shortenUrl()"
+            id="shortenButton"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
+            Shorten!
+        </button>
+
+        <div id="loadingIndicator" class="hidden text-center text-blue-600 mt-4">
+            Shortening URL...
+        </div>
+
+        <div id="resultContainer" class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg hidden">
+            <p class="text-gray-700 text-sm font-semibold mb-2">Shortened URL:</p>
+            <div class="flex items-center space-x-2">
+                <a id="shortenedLink" href="#" target="_blank" class="text-blue-600 hover:underline break-all text-lg font-medium"></a>
+                <button
+                    onclick="copyToClipboard()"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-1 px-3 rounded-lg transition duration-200 ease-in-out text-sm"
+                    title="Copy to clipboard"
+                >
+                    Copy
+                </button>
+            </div>
+            <p id="copyMessage" class="text-green-600 text-sm mt-2 hidden"></p>
+        </div>
+
+        <div id="errorMessage" class="mt-6 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg hidden">
+            <p class="font-semibold">Error:</p>
+            <p id="errorText"></p>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace this with your actual AWS Lambda Function URL after deployment.
+        // This URL will be used for both shortening (POST) and redirection (GET).
+        const LAMBDA_FUNCTION_URL = "https://YOUR_LAMBDA_FUNCTION_URL_HERE";
+
+        const longUrlInput = document.getElementById("longUrl");
+        const shortenButton = document.getElementById("shortenButton");
+        const loadingIndicator = document.getElementById("loadingIndicator");
+        const resultContainer = document.getElementById("resultContainer");
+        const shortenedLink = document.getElementById("shortenedLink");
+        const copyMessage = document.getElementById("copyMessage");
+        const errorMessage = document.getElementById("errorMessage");
+        const errorText = document.getElementById("errorText");
+
+        /**
+         * Hides all dynamic message containers (result, copy message, error).
+         */
+        function hideAllMessages() {
+            resultContainer.classList.add("hidden");
+            copyMessage.classList.add("hidden");
+            errorMessage.classList.add("hidden");
+        }
+
+        /**
+         * Handles the URL shortening process when the button is clicked.
+         */
+        async function shortenUrl() {
+            hideAllMessages(); // Clear previous messages
+            const url = longUrlInput.value.trim();
+
+            if (!url) {
+                errorText.textContent = "Please enter a URL to shorten.";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
+
+            // Basic URL validation (can be more robust)
+            try {
+                new URL(url); // Throws error if URL is invalid
+            } catch (e) {
+                errorText.textContent = "Please enter a valid URL (e.g., https://example.com).";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
+
+            shortenButton.disabled = true; // Disable button during processing
+            loadingIndicator.classList.remove("hidden"); // Show loading indicator
+
+            try {
+                const response = await fetch(`${LAMBDA_FUNCTION_URL}/shorten`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const shortId = data.short_id;
+                const fullShortUrl = `${LAMBDA_FUNCTION_URL}/${shortId}`;
+
+                shortenedLink.href = fullShortUrl;
+                shortenedLink.textContent = fullShortUrl;
+                resultContainer.classList.remove("hidden");
+                longUrlInput.value = ""; // Clear the input field
+            } catch (e) {
+                errorText.textContent = `Failed to shorten URL: ${e.message}`;
+                errorMessage.classList.remove("hidden");
+                console.error("Error shortening URL:", e);
+            } finally {
+                shortenButton.disabled = false; // Re-enable button
+                loadingIndicator.classList.add("hidden"); // Hide loading indicator
+            }
+        }
+
+        /**
+         * Copies the shortened URL to the clipboard.
+         */
+        function copyToClipboard() {
+            const textToCopy = shortenedLink.textContent;
+            if (textToCopy) {
+                // Use execCommand for broader browser compatibility in iframes
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        copyMessage.textContent = "Copied to clipboard!";
+                        copyMessage.classList.remove("hidden");
+                        setTimeout(() => copyMessage.classList.add("hidden"), 2000); // Hide after 2 seconds
+                    } else {
+                        copyMessage.textContent = "Failed to copy.";
+                        copyMessage.classList.remove("hidden");
+                    }
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    copyMessage.textContent = "Failed to copy (browser not supported).";
+                    copyMessage.classList.remove("hidden");
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
