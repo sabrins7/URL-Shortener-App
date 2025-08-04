@@ -1,0 +1,38 @@
+# Python specific files and directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+pytest.ini
+.mypy_cache/
+.pytest_cache/
+
+# IDE specific files and directories (VS Code)
+.vscode/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# AWS Lambda deployment related files
+*.zip
+*.egg
+dist/
+build/
+
+# Environment variables files
+.env
+*.env
+
+# Log files
+*.log
