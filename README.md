@@ -89,7 +89,5 @@ After deployment, you will get the API Gateway URL. Update your frontend JavaScr
 Bash
 aws s3 sync frontend/ s3://your-s3-bucket-name --acl public-read
 
-
-
 This project was developed with the assistance of AI tools
 
