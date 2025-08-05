@@ -53,22 +53,8 @@ To gain a better understanding of the system's structure and data flow, please r
 
 Getting Started
 These instructions will guide you through the process of deploying the project to your own AWS environment.
-Deploy the Backend:
 
-1.Deploy the Backend
-This command deploys the Lambda functions, creates the DynamoDB table, and sets up the PI Gateway. Before running, you may need to set environment variables for your specific AWS region or other configurations.
-
-Bash
-serverless deploy
-
-2.Upload the Frontend Files:
-After deployment, you will get the API Gateway URL. Update your frontend JavaScript code with this new endpoint. Then, upload your static frontend files to the designated S3 bucket.
-
-Bash
-aws s3 sync frontend/ s3://your-s3-bucket-name --acl public-read
-
-
-Prerequisites
+Prerequisites:
 
 An active AWS account.
 
@@ -80,24 +66,30 @@ The AWS CLI configured with your credentials.
 
 Serverless Framework installed globally.
 
-Deployment Steps
+Deployment Steps:
 
-Clone the Repository:
+1. clone the Repository:
+   Bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
+
+2. Install Project Dependencies:
+   bash
+   npm install
+
+3. Deploy the Backend:
+This command deploys the Lambda functions, creates the DynamoDB table, and sets up the API Gateway. Before running, you may need to set environment variables for your specific AWS region or other configurations.
+   Bash
+   serverless deploy
+
+
+4. Upload the Frontend Files:
+After deployment, you will get the API Gateway URL. Update your frontend JavaScript code with this new endpoint. Then, upload your static frontend files to the designated S3 bucket.
 
 Bash
-
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-Deploy the Backend: Run the following command from the project root. This will deploy the Lambda functions, create the DynamoDB table, and set up the API Gateway.
-
-Bash
-
-serverless deploy
-Upload the Frontend Files: After deployment, you will get the API Gateway URL. Update your frontend JavaScript code with this new endpoint. Then, upload your static frontend files to the designated S3 bucket.
-
-Bash
-
 aws s3 sync frontend/ s3://your-s3-bucket-name --acl public-read
+
+
 
 This project was developed with the assistance of AI tools
 
