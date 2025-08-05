@@ -53,6 +53,20 @@ To gain a better understanding of the system's structure and data flow, please r
 
 Getting Started
 These instructions will guide you through the process of deploying the project to your own AWS environment.
+Deploy the Backend:
+
+1.Deploy the Backend
+This command deploys the Lambda functions, creates the DynamoDB table, and sets up the PI Gateway. Before running, you may need to set environment variables for your specific AWS region or other configurations.
+
+Bash
+serverless deploy
+
+2.Upload the Frontend Files:
+After deployment, you will get the API Gateway URL. Update your frontend JavaScript code with this new endpoint. Then, upload your static frontend files to the designated S3 bucket.
+
+Bash
+aws s3 sync frontend/ s3://your-s3-bucket-name --acl public-read
+
 
 Prerequisites
 
